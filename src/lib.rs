@@ -1,5 +1,5 @@
 use axum::{response::Html, routing::get, Router};
-use pyo3::prelude::*;
+use pyo3::{prelude::*, types::PyFunction};
 
 /// Formats the sum of two numbers as string.
 #[pyfunction]
@@ -8,9 +8,9 @@ fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
 }
 
 // Set up and run axum web service
-async fn web_app() {
+async fn web_app(string_handler: impl Fn() -> String) {
     // build our application with a route
-    let app = Router::new().route("/", get(handler));
+    let app = Router::new().route("/", get(async { Html(string_handler()) }.await));
 
     // run it
     let listener = tokio::net::TcpListener::bind("127.0.0.1:8000")
@@ -20,15 +20,18 @@ async fn web_app() {
     axum::serve(listener, app).await.unwrap();
 }
 
-async fn handler() -> Html<&'static str> {
-    Html("<h1>Hello, World!</h1>")
-}
-
 /// Run axum web server in Tokio runtime
 #[pyfunction]
-fn run_web_server() {
+fn run_web_server(callback: &PyFunction) {
     let rt = tokio::runtime::Runtime::new().unwrap();
-    rt.block_on(web_app())
+    rt.block_on(web_app(|| -> String {
+        callback
+            .call0()
+            .expect("callback not callable")
+            .str()
+            .expect("callback result not convertible to string")
+            .to_string()
+    }))
 }
 
 /// A Python module implemented in Rust.
