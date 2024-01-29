@@ -1,5 +1,5 @@
 use axum::{response::Html, routing::get, Router};
-use pyo3::{prelude::*, types::PyFunction};
+use pyo3::prelude::*;
 
 /// Formats the sum of two numbers as string.
 #[pyfunction]
@@ -22,15 +22,15 @@ async fn web_app(string_handler: impl Fn() -> String) {
 
 /// Run axum web server in Tokio runtime
 #[pyfunction]
-fn run_web_server(callback: &PyFunction) {
+fn run_web_server(callback: PyObject) {
     let rt = tokio::runtime::Runtime::new().unwrap();
     rt.block_on(web_app(|| -> String {
-        callback
-            .call0()
-            .expect("callback not callable")
-            .str()
-            .expect("callback result not convertible to string")
-            .to_string()
+        Python::with_gil(|py| {
+            callback
+                .call0(py)
+                .expect("callback not callable")
+                .to_string()
+        })
     }))
 }
 
