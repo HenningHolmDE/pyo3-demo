@@ -34,3 +34,13 @@ fn pyo3_demo(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(run_web_server, m)?)?;
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_sum_as_string() {
+        assert_eq!(sum_as_string(10, 5).unwrap(), String::from("15"));
+    }
+}
