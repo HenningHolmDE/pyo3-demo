@@ -27,3 +27,22 @@ $ python examples/sum_as_string.py
 # Run web server with Python function callback
 $ python examples/run_web_server.py
 ```
+
+## Run unit tests with coverage report
+
+### Install requirements
+```bash
+rustup component add llvm-tools-preview
+cargo install grcov
+```
+
+### Run instrumented unit test
+```bash
+cargo clean
+CARGO_INCREMENTAL=0 RUSTFLAGS='-Cinstrument-coverage' LLVM_PROFILE_FILE='cargo-test-%p-%m.profraw' cargo test
+```
+
+### Create HTML report
+```bash
+grcov . --binary-path ./target/debug/deps/ -s . -t html --branch --ignore-not-existing --ignore '../*' --ignore "/*" -o target/coverage/html
+```

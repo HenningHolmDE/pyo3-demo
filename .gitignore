@@ -70,3 +70,6 @@ docs/_build/
 
 # Pyenv
 .python-version
+
+# LLVM code coverage maps
+*.profraw
