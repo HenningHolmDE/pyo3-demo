@@ -1,5 +1,5 @@
-use axum::{response::Html, routing::get, Router};
 use pyo3::prelude::*;
+use tiny_http::{Response, Server};
 
 /// Formats the sum of two numbers as string.
 #[pyfunction]
@@ -7,31 +7,24 @@ fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
     Ok((a + b).to_string())
 }
 
-// Set up and run axum web service
-async fn web_app(string_handler: impl Fn() -> String) {
-    // build our application with a route
-    let app = Router::new().route("/", get(async { Html(string_handler()) }.await));
-
-    // run it
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:8000")
-        .await
-        .unwrap();
-    println!("Listening on {}", listener.local_addr().unwrap());
-    axum::serve(listener, app).await.unwrap();
-}
-
-/// Run axum web server in Tokio runtime
+/// Run tiny-http web server
 #[pyfunction]
-fn run_web_server(callback: PyObject) {
-    let rt = tokio::runtime::Runtime::new().unwrap();
-    rt.block_on(web_app(|| -> String {
-        Python::with_gil(|py| {
+fn run_web_server(py: Python, callback: PyObject) {
+    let server = Server::http("127.0.0.1:8000").unwrap();
+
+    for request in server.incoming_requests() {
+        let response = Response::from_string(
             callback
                 .call0(py)
                 .expect("callback not callable")
-                .to_string()
-        })
-    }))
+                .to_string(),
+        )
+        .with_header(tiny_http::Header {
+            field: "Content-Type".parse().unwrap(),
+            value: "text/html; charset=utf8".parse().unwrap(),
+        });
+        request.respond(response).unwrap();
+    }
 }
 
 /// A Python module implemented in Rust.

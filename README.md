@@ -24,6 +24,6 @@ $ maturin develop
 # Call simple Rust function from Python
 $ python examples/sum_as_string.py
 
-# Run axum web server with Python function callback
+# Run web server with Python function callback
 $ python examples/run_web_server.py
 ```
