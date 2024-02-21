@@ -7,16 +7,21 @@ Demo project for playing around with [PyO3](https://github.com/PyO3/pyo3) for cr
 - Python 3.7 and up (CPython and PyPy)
 - Rust 1.56 and up
 
-## Set up virtual environment with [maturin](https://github.com/PyO3/maturin)
+## Set up virtual environment with [build frontend](https://github.com/pypa/build)
 ```bash
 $ python -m venv .venv
 $ source .venv/bin/activate
-$ pip install maturin
+$ python -m pip install build
 ```
 
-## Build Rust crate and install Python module
+## Build and install into current environment
 ```bash
-$ maturin develop
+$ python -m pip install .
+```
+
+## Build Python wheel
+```bash
+$ python -m build --wheel
 ```
 
 ## Run examples
